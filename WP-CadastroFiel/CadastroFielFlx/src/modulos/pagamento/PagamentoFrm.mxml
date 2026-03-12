@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:pesq="components.pesq.*"
+			   xmlns:services="services.*"
+			   width="744" height="380">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import valueObjects.Pagamento;
+			import valueObjects.PagamentoId;
+			
+			[Bindable]
+			private var pagamento:Pagamento = new Pagamento();
+			
+			private var novo :Boolean;
+			
+			protected function cmpFechar_clickHandler(event:MouseEvent):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function habilitaControles(ativo:Boolean) : void
+			{
+				// BOTOES
+				cmpNovo.enabled = !ativo;
+				cmpAlterar.enabled = !ativo;
+				
+				cmpSalvar.enabled = ativo;
+				cmpCancelar.enabled = ativo;
+				
+				cmpApagar.enabled = !ativo;
+				cmpFechar.enabled = !ativo;
+				
+				// COMPONENTES
+				cmpPesq.enabled = ativo;
+				cmpTipo.enabled = ativo;
+				cmpValor.editable = ativo;
+			}
+			
+			protected function adicionarResult_resultHandler(event:ResultEvent):void
+			{
+				
+				Alert.show("Salvo com sucesso!!");
+				habilitaControles(false);
+			}
+			
+			protected function cmpNovo_clickHandler(event:MouseEvent):void
+			{
+				novo = true;
+				habilitaControles(true);
+				
+				pagamento.id.cpf = "";
+				cmpValor.text = "";
+				grupoTipos.selection = null;
+			}
+			
+			protected function cmpCancelar_clickHandler(event:MouseEvent):void
+			{
+				if (novo == true) 
+				{
+					PopUpManager.removePopUp(this);
+				} else 
+				{
+					habilitaControles(false);
+				}
+			}
+			
+			public function show(id:PagamentoId):void
+			{
+				 getEntityResult.token = service.getPagamento(id); 
+			}
+			
+			protected function getEntityResult_resultHandler(event:ResultEvent):void
+			{
+				pagamento = event.result as Pagamento;
+			}
+			
+			protected function cmpAlterar_clickHandler(event:MouseEvent):void
+			{
+				novo = false;
+				habilitaControles(true);
+				cmpPesq.enabled = false;
+			}
+			
+			protected function atualizarResult_resultHandler(event:ResultEvent):void
+			{
+				novo = false;
+				habilitaControles(false);
+				Alert.show("Atualizado com sucesso!!");
+			}
+			
+			protected function cmpSalvar_clickHandler(event:MouseEvent):void
+			{
+				if (novo) 
+				{
+					pagamento.id = new PagamentoId;
+					pagamento.id.cpf = cmpPesq.fiel.cpf;
+				}
+				
+				pagamento.tipo = int(grupoTipos.selectedValue);
+				pagamento.valor = cmpValor.text;
+				
+				if (novo) 
+				{
+					adicionarResult.token = service.adicionar(pagamento);
+				} 
+				else 
+				{
+					atualizarResult.token = service.atualizar(pagamento);
+				}
+			}
+			
+			protected function cmpApagar_clickHandler(event:MouseEvent):void
+			{
+				
+				apagarResult.token = service.apagar(pagamento.id);
+			}
+			
+			protected function apagarResult_resultHandler(event:ResultEvent):void
+			{
+				Alert.show("Apagou");
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:RadioButtonGroup id="grupoTipos"/>
+		<s:CallResponder id="adicionarResult" result="adicionarResult_resultHandler(event)"/>
+		<s:CallResponder id="getEntityResult" result="getEntityResult_resultHandler(event)"/>
+		<services:PagamentoService id="service"
+								   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								   showBusyCursor="true"/>
+		<services:PesqFielService id="pesqFielService"
+								  fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								  showBusyCursor="true"/>
+		<s:CallResponder id="atualizarResult" result="atualizarResult_resultHandler(event)"/>
+		<s:CallResponder id="apagarResult" result="apagarResult_resultHandler(event)"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:BorderContainer x="10" y="10" width="602" height="331">
+		<pesq:PesqFielCmp id="cmpPesq" x="10" y="28" width="442" cpf="{pagamento.id.cpf}">
+		</pesq:PesqFielCmp>
+		<s:Label x="10" y="10" fontWeight="bold" text="Fiel"/>
+		<s:Label y="70" left="10" fontWeight="bold" text="Valor"/>
+		<s:Label x="493" y="10" fontWeight="bold" text="Tipo"/>
+		<s:TextInput id="cmpValor" y="90" left="10" editable="false" text="{pagamento.valor}"/>
+		<s:VGroup id="cmpTipo" x="490" y="29" width="91" height="53">
+			<s:RadioButton label="Pagamento" group="{grupoTipos}" groupName="Tipos" value="1"
+						   selected="{pagamento.tipo == 1}"/>
+			<s:RadioButton label="Dizimo" group="{grupoTipos}" groupName="Tipos" value="2"
+						   selected="{pagamento.tipo == 2}"/>
+		</s:VGroup>
+	</s:BorderContainer>
+	<s:BorderContainer x="620" y="10" width="112" height="331">
+		<s:Button id="cmpNovo" x="10" y="10" width="91" label="Novo"
+				  click="cmpNovo_clickHandler(event)"/>
+		<s:Button id="cmpAlterar" x="10" y="39" width="91" label="Alterar"
+				  click="cmpAlterar_clickHandler(event)"/>
+		<s:Button id="cmpSalvar" x="10" y="99" width="91" label="Salvar"
+				  click="cmpSalvar_clickHandler(event)" enabled="false"/>
+		<s:Button id="cmpCancelar" x="10" y="128" width="91" label="Cancelar"
+				  click="cmpCancelar_clickHandler(event)" enabled="false"/>
+		<s:Button id="cmpFechar" x="10" bottom="10" width="91" label="Fechar"
+				  click="cmpFechar_clickHandler(event)"/>
+		<s:Button id="cmpApagar" x="10" y="198" width="91" label="Apagar"
+				  click="cmpApagar_clickHandler(event)" color="#FF0000" focusColor="#554B4B"/>
+	</s:BorderContainer>
+</s:TitleWindow>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   minWidth="955" minHeight="600" creationPolicy="all">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.managers.PopUpManager;
+			
+			import valueObjects.Fiel;
+			import valueObjects.Pagamento;
+			
+			// POG para nao descarregadar da memoria essas classes
+			private var aler :Alert;
+			private var pop :PopUpManager;
+			private var fiel :Fiel;
+			private var pagamento :Pagamento;
+			// FIM POG
+			
+			protected function btShowFiel_clickHandler(event:MouseEvent):void
+			{
+				area.unloadModule();
+				area.url = "modulos/fiel/FielLst.swf";
+				area.loadModule();
+			}
+			
+			protected function btShowPagamento_clickHandler(event:MouseEvent):void
+			{
+				area.unloadModule();
+				area.url = "modulos/pagamento/PagamentoLst.swf";
+				area.loadModule();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:ModuleLoader id="area" left="168" right="10" top="10" bottom="10" url="Home.swf">
+	</s:ModuleLoader>
+	<s:Panel left="10" top="10" bottom="10" width="150" title="Menu">
+		<s:Button id="btShowFiel" x="10" y="10" width="128" label="Fiel"
+				  click="btShowFiel_clickHandler(event)"/>
+		<s:Button id="btShowPagamento" x="10" y="39" width="129" label="Pagamento"
+				  click="btShowPagamento_clickHandler(event)"/>
+	</s:Panel>
+</s:Application>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Module xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:services="services.*"
+		  width="100%" height="100%">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import valueObjects.PagamentoId;
+			import valueObjects.PagamentoView;
+			
+			[Bindable]
+			private var lista :ArrayCollection;
+			
+			protected function cmpPesquisar_clickHandler(event:MouseEvent):void
+			{
+				getPagamentoVwResult.token = pagamentoService.getPagamentoVw(cmpCpf.text, cmpNome.text);
+			}
+			
+			protected function getPagamentoVwResult_resultHandler(event:ResultEvent):void
+			{
+				lista = event.result as ArrayCollection;
+			}
+			
+			protected function cmpAdd_clickHandler(event:MouseEvent):void
+			{
+				var fielFrm :PagamentoFrm = new PagamentoFrm();
+				PopUpManager.addPopUp(fielFrm, this, true);
+				PopUpManager.centerPopUp(fielFrm);
+				fielFrm.closeButton.visible = false;
+				/* 					fielFrm.cmpNovo_clickHandler(null); */		
+			}
+			
+			protected function item_doubleClickHandler(event:MouseEvent):void
+			{
+				var vw:PagamentoView = item.selectedItem as PagamentoView;
+				
+				var pagamentoFrm  :PagamentoFrm = new PagamentoFrm();
+				PopUpManager.addPopUp(pagamentoFrm , this, true);
+				PopUpManager.centerPopUp(pagamentoFrm);
+				pagamentoFrm .closeButton.visible = false;
+				
+				var id:PagamentoId = new PagamentoId();
+				id.codPagamento = vw.id.codPagamento;
+				id.cpf = vw.id.cpf;
+	
+				pagamentoFrm.show(id);
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<services:PagamentoService id="pagamentoService"
+								   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								   showBusyCursor="true"/>
+		<s:CallResponder id="getPagamentoVwResult" result="getPagamentoVwResult_resultHandler(event)"/>
+	</fx:Declarations>
+	<s:Panel left="0" right="0" top="0" bottom="0" fontStyle="italic" fontWeight="bold">
+		<s:BorderContainer y="25" left="10" right="10" height="80">
+			<s:TextInput id="cmpCpf" y="25" left="10" width="117"/>
+			<s:Label x="10" y="10" text="CPF"/>
+			<s:Button id="cmpPesquisar" y="51" right="10" label="Pesquisar"
+					  click="cmpPesquisar_clickHandler(event)" fontStyle="normal"/>
+			<s:TextInput id="cmpNome" y="25" left="133" right="10"/>
+			<s:Label x="135" y="9" text="Nome&#xd;"/>
+		</s:BorderContainer>
+		<s:Label x="10" y="-18" text="Lista de Pagamento&#xd;"/>
+		<s:Label x="10" y="10" fontStyle="italic" text="Pesquisa"/>
+		<s:Button id="cmpAdd" y="111" right="10" width="37" height="24" label="+"
+				  click="cmpAdd_clickHandler(event)" fontStyle="normal"/>
+		<s:Label x="13" y="138" text="Lista"/>
+		<s:DataGrid id="item" left="10" right="10" top="157" bottom="10" dataProvider="{lista}"
+					doubleClick="item_doubleClickHandler(event)" doubleClickEnabled="true">
+			<s:columns>
+				<s:ArrayList>
+					<s:GridColumn width="80" dataField="id.cpf" headerText="Cpf"></s:GridColumn>
+					<s:GridColumn width="80" dataField="id.dizimoId" headerText="dizimoId"></s:GridColumn>
+					<s:GridColumn width="1000" dataField="nome" headerText="Nome"></s:GridColumn>
+					<s:GridColumn dataField="valor" headerText="valor"></s:GridColumn>
+				</s:ArrayList>
+			</s:columns>
+		</s:DataGrid>
+	</s:Panel>
+</s:Module>

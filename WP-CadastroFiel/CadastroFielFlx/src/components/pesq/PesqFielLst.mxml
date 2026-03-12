@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:services="services.*"
+			   width="622" height="448" 
+			   close="titlewindow1_closeHandler(event)"
+			   creationComplete="titlewindow1_creationCompleteHandler(event)"
+			   title="Pesquisa de pagamento">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.Funcoes;
+			
+			import valueObjects.Fiel;
+			
+			[Bindable]
+			public var fiel :Fiel = null;
+			
+			[Bindable]
+			public var fechado :Boolean = false;
+			
+			[Bindable]
+			public var apenasAtivo :Boolean = false;
+			
+			[Bindable]
+			public var codLoja :int = 0;
+			
+			[Bindable]
+			public var listaFunc :ArrayCollection =  new ArrayCollection;
+			
+			protected function titlewindow1_creationCompleteHandler(event:FlexEvent):void
+			{
+				tiPesquisa.setFocus();
+			}
+			
+			protected function btPesquisar_clickHandler(event:MouseEvent):void
+			{
+				getListResult.token = pesqService.getList(tiPesquisa.text);
+			}
+			
+			protected function btSelecionar_clickHandler(event:MouseEvent):void
+			{
+				if(dg.selectedIndex!= -1){
+					fiel = dg.selectedItem as Fiel;
+					PopUpManager.removePopUp(this);
+				} else {
+					Alert.show("Você deve selecionar um item antes de executar esta operação.");
+				}
+			}
+			
+			protected function titlewindow1_closeHandler(event:CloseEvent):void
+			{
+				fechado = true;
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function getListResult_resultHandler(event:ResultEvent):void
+			{
+				objAr = event.result as ArrayCollection;
+				if(objAr.length > 0){
+					dg.setFocus();
+					dg.selectedIndex = 0;
+				} else {
+					Alert.show("Não há resultado(s) para esta pesquisa!" ,"Opa!", 4, null, function(e: CloseEvent):void {
+						tiPesquisa.setFocus();
+						tiPesquisa.selectAll();
+					});
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<services:PesqFielService id="pesqService" fault="Funcoes.showMenssagemErro(event.fault.faultString)" showBusyCursor="true"/>
+		
+		<s:CallResponder id="getListResult" result="getListResult_resultHandler(event)"/>
+		
+		<s:ArrayCollection id="objAr"/>
+	</fx:Declarations>
+	<s:Label x="10" y="10" fontWeight="bold" text="Pesquisa:"/>
+	<s:BorderContainer x="10" y="27" width="600" height="41">
+		<s:TextInput id="tiPesquisa" x="6" y="7" width="492" maxChars="100" keyDown="{if(event.keyCode==Keyboard.ENTER)btPesquisar_clickHandler(null) else if(event.keyCode == 27) titlewindow1_closeHandler(null)}"/>
+		<s:Button id="btPesquisar" x="506" y="8" label="Pesquisar" click="btPesquisar_clickHandler(event)"/>
+	</s:BorderContainer>
+	
+	<s:Label x="10" y="85" fontWeight="bold" text="Lista:"/>
+	<s:BorderContainer x="10" y="105" width="600" height="300">
+		<s:DataGrid id="dg" x="10" y="10" width="578" height="229" requestedRowCount="4" keyDown="{if(event.keyCode==Keyboard.ENTER)btSelecionar_clickHandler(null) else if(event.keyCode == 27) titlewindow1_closeHandler(null)}" doubleClickEnabled="{objAr.length > 0}" doubleClick="btSelecionar_clickHandler(null)">
+			<s:columns>
+				<s:ArrayList>
+					<s:GridColumn width="90" dataField="cpf" headerText="Cpf"></s:GridColumn>
+					<s:GridColumn dataField="nome" headerText="Nome"></s:GridColumn>
+				</s:ArrayList>
+			</s:columns>
+			<s:typicalItem>
+				<fx:Object codigo="codigo1" nome="nome1"></fx:Object>
+			</s:typicalItem>
+			<s:AsyncListView list="{objAr}"/>
+		</s:DataGrid>
+		<s:Button id="btSelecionar" x="508" y="246" label="Selecionar" click="btSelecionar_clickHandler(event)"/>
+	</s:BorderContainer>
+	
+</s:TitleWindow>

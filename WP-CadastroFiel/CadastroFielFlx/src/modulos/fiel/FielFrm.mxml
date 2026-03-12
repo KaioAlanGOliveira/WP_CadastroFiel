@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:services="services.*"
+			   width="744" height="382" creationPolicy="all" title="Cadastro de fiel">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.Alert;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.Funcoes;
+			
+			import valueObjects.Fiel;
+			
+			
+			[Bindable]
+			private var fiel :Fiel = new Fiel;
+			
+			private var novo :Boolean;
+			private function pesquisarFieis():void 
+			{
+				getFieisResult.token = fielService.getFieis(fiel.cpf, fiel.nome);
+			}
+			protected function cmpFechar_clickHandler(event:MouseEvent):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function cmpNovo_clickHandler(event:MouseEvent):void
+			{
+				novo = true;
+				habilitaControles(true);
+				
+				cmpCpf.enabled = true;
+				cmpCpf.text = "";
+				cmpNome.text = "";
+				cmpTelefone.text = "";
+				cmpIdade.text = "";
+				cmpEmail.text = "";
+			}
+			
+			private function dadosUsuario() : Fiel {
+				var f:Fiel = new Fiel();
+				
+				f.nome = cmpNome.text;
+				f.cpf = cmpCpf.text;
+				f.idade = parseInt(cmpIdade.text);
+				f.email = cmpEmail.text;
+				f.telefone = cmpTelefone.text;
+				
+				return f;
+			}
+			
+			private function habilitaControles(ativo:Boolean) : void
+			{
+				// BOTOES
+				cmpNovo.enabled = !ativo;
+				cmpAlterar.enabled = !ativo;
+				
+				cmpSalvar.enabled = ativo;
+				cmpCancelar.enabled = ativo;
+				
+				cmpApagar.enabled = !ativo;
+				cmpFechar.enabled = !ativo;
+				
+				// COMPONENTES
+				cmpCpf.editable = ativo;
+				cmpNome.editable = ativo;
+				cmpTelefone.editable = ativo;
+				cmpIdade.editable = ativo;
+				cmpEmail.editable = ativo;
+			}
+			
+			protected function cmpCancelar_clickHandler(event:MouseEvent):void
+			{
+				if (novo == true) 
+				{
+					PopUpManager.removePopUp(this);
+				} else 
+				{
+					habilitaControles(false);
+				}
+			}
+			
+			protected function cmpSalvar_clickHandler(event:MouseEvent):void
+			{
+				if (validaTela())
+				{
+					var dados:Fiel = dadosUsuario();
+					if (novo == true) 
+					{
+						adicionarResult.token = fielService.adicionar(dados);
+					} else {
+						atualizarResult.token = fielService.atualizar(dados);
+					}
+				}
+			}
+			
+			private function validaTela() :Boolean 
+			{
+				
+				if (cmpCpf.text == "") 
+				{
+					Alert.show("Preencha o campo CPF!", "Atenção!!!!!", 4, null, function ():void {
+						cmpCpf.setFocus();					
+					});
+					return false;
+				} 
+				
+				if (cmpCpf.text.length > 11) 
+				{
+						Alert.show("O CPF invalido!", "Atenção!", 4, null, function ():void {
+							cmpCpf.setFocus();                    
+						});
+						return false;
+				}
+				
+				if (cmpNome.text == "") 
+				{
+					Alert.show("Preencha o campo nome!", "Atenção!!!!!", 4, null, function ():void {
+						cmpNome.setFocus();					
+					});
+					return false;
+				} 
+				
+				// Regex padrão para nome
+				var regExpNome:RegExp = /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s]*$/;
+				if (!regExpNome.test(cmpNome.text)) {
+					Alert.show("Preencha o campo nome corretamente!", "Atenção!!!!!", 4, null, function ():void {
+						cmpNome.setFocus();					
+					});
+					return false;
+				}
+				
+				if (cmpTelefone.text != "" && cmpTelefone.text.length < 10) 
+				{
+					Alert.show("Preencha o campo telefone!", "Atenção!!!!!", 4, null, function ():void {
+						cmpTelefone.setFocus();					
+					});
+					return false;
+				} 
+	
+				if (parseInt(cmpIdade.text) > 150) 
+				{
+					Alert.show("A idade não pode ser maior do que 150!", "Atenção!", 4, null, function ():void {
+						cmpIdade.setFocus();                    
+					});
+					return false;
+				}
+
+				// Regex padrão para e-mail
+				var regExpEmail:RegExp = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/i;
+				if (cmpEmail.text != "" && !regExpEmail.test(cmpEmail.text)) {
+					Alert.show("Preencha o campo email corretamente!", "Atenção!!!!!", 4, null, function ():void {
+						cmpEmail.setFocus();					
+					});
+					return false;
+				}
+				
+				return true;	
+			}
+			
+			protected function adicionarResult_resultHandler(event:ResultEvent):void
+			{
+				habilitaControles(false);
+				Alert.show("Salvo com sucesso!!");
+			}
+			
+			public function showFiel(fiel:Fiel):void
+			{
+				getEntityResult.token = fielService.getEntity(fiel.cpf);
+			}
+			
+			protected function getEntityResult_resultHandler(event:ResultEvent):void
+			{
+				fiel = event.result as Fiel;
+				cmpNome.text = fiel.nome;
+				cmpIdade.text = fiel.idade.toString();
+				cmpTelefone.text = fiel.telefone;
+				cmpEmail.text = fiel.email;
+				
+				habilitaControles(false);
+			}
+			
+			protected function cmpAlterar_clickHandler(event:MouseEvent):void
+			{
+				habilitaControles(true);
+				cmpCpf.enabled = false;
+			}	
+			
+			protected function atualizarResult_resultHandler(event:ResultEvent):void
+			{
+				novo = false;
+				Alert.show("Atulizado comsucesso");
+			}
+			
+			
+			protected function cmpApagar_clickHandler(event:MouseEvent):void
+			{
+				apagarResult.token = fielService.apagar(fiel.cpf);
+			}
+			
+			protected function apagarResult_resultHandler(event:ResultEvent):void
+			{
+				Alert.show("Apagou!!");
+				pesquisarFieis();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:CallResponder id="adicionarResult" result="adicionarResult_resultHandler(event)"/>
+		<services:FielService id="fielService"
+							  fault="Funcoes.showMenssagemErro(event.fault.faultString)"
+							  showBusyCursor="true"/>
+		<s:CallResponder id="getEntityResult" result="getEntityResult_resultHandler(event)"/>
+		<s:CallResponder id="atualizarResult" result="atualizarResult_resultHandler(event)"/>
+		<s:CallResponder id="apagarResult" result="apagarResult_resultHandler(event)"/>
+		<s:CallResponder id="getFieisResult"/>
+		
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:BorderContainer x="10" y="10" width="602" height="331">
+		<s:TextInput id="cmpNome" x="167" y="30" width="423" maxChars="99"/>
+		<s:TextInput id="cmpCpf" x="10" y="30" width="149" maxChars="11" restrict="0-9"
+					 text="{fiel.cpf}" toolTip="Ex: 11111111111"/>
+		<s:Label x="167" y="10" fontWeight="bold" text="* Nome"/>
+		<s:Label x="10" y="10" fontWeight="bold" text="* CPF"/>
+		<s:Label x="171" y="60" fontWeight="bold" text="Idade"/>
+		<s:TextInput id="cmpIdade" x="171" y="80" width="109" maxChars="3"/>
+		<s:TextInput id="cmpTelefone" x="10" y="80" width="153" maxChars="11" restrict="0-9"/>
+		<s:TextInput id="cmpEmail" x="10" y="130" width="580" maxChars="99"/>
+		<s:Label x="11" y="60" fontWeight="bold" text="Telefone"/>
+		<s:Label x="10" y="110" fontWeight="bold" text="Email&#xd;"/>
+	</s:BorderContainer>
+	<s:BorderContainer x="620" y="10" width="112" height="331">
+		<s:Button id="cmpNovo" x="10" y="10" width="91" label="Novo"
+				  click="cmpNovo_clickHandler(event)"/>
+		<s:Button id="cmpAlterar" x="10" y="39" width="91" label="Alterar"
+				  click="cmpAlterar_clickHandler(event)"/>
+		<s:Button id="cmpSalvar" x="10" y="99" width="91" label="Salvar"
+				  click="cmpSalvar_clickHandler(event)"/>
+		<s:Button id="cmpCancelar" x="10" y="128" width="91" label="Cancelar"
+				  click="cmpCancelar_clickHandler(event)"/>
+		<s:Button id="cmpFechar" x="10" bottom="10" width="91" label="Fechar"
+				  click="cmpFechar_clickHandler(event)"/>
+		<s:Button id="cmpApagar" x="10" y="198" width="91" label="Apagar"
+				  click="cmpApagar_clickHandler(event)" color="#FF0000" focusColor="#554B4B"/>
+	</s:BorderContainer>
+</s:TitleWindow>

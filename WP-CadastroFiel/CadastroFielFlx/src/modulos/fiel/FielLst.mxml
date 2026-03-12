@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Module xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:services="services.*"
+		  width="100%" height="100%" creationPolicy="all">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.Funcoes;
+			
+			import valueObjects.Fiel;
+			
+			[Bindable]
+			private var lista :ArrayCollection;
+			private var opcao :Boolean;
+			
+				
+			protected function cmpAdd_clickHandler(event:MouseEvent):void
+			{
+				var fielFrm :FielFrm = new FielFrm();
+				PopUpManager.addPopUp(fielFrm, this, true);
+				PopUpManager.centerPopUp(fielFrm);
+				fielFrm.closeButton.visible = false;
+				fielFrm.cmpNovo_clickHandler(null);		
+			}
+			
+			
+			protected function button_clickHandler(event:MouseEvent):void
+			{
+				getFieisResult.token = fielService.getFieis(cmpCpf.text, cmpNome.text);
+			}
+			
+			protected function getFieisResult_resultHandler(event:ResultEvent):void
+			{
+				lista = event.result as ArrayCollection;
+			}
+			
+			protected function datagrid1_doubleClickHandler(event:MouseEvent):void
+			{
+				var fiel:Fiel = item.selectedItem as Fiel;
+		
+				if (fiel != null) 
+				{
+					var fielFrm :FielFrm = new FielFrm();
+					PopUpManager.addPopUp(fielFrm, this, true);
+					PopUpManager.centerPopUp(fielFrm);
+					fielFrm.closeButton.visible = false;
+					fielFrm.showFiel(fiel);
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:CallResponder id="getFieisResult" result="getFieisResult_resultHandler(event)"/>
+		<services:FielService id="fielService"
+							  fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+							  showBusyCursor="true"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Panel x="0" y="0" width="100%" height="100%" fontStyle="italic" fontWeight="bold"
+			 title="Lista de Fieis">
+		<s:Button id="cmpAdd" y="128" right="10" width="46" label="+"
+				  click="cmpAdd_clickHandler(event)"/>
+		<s:DataGrid id="item" left="10" right="10" top="157" bottom="10" dataProvider="{lista}" doubleClickEnabled="true" doubleClick="datagrid1_doubleClickHandler(event)">
+			<s:columns>
+				<s:ArrayList>
+					<s:GridColumn width="80" dataField="cpf" headerText="CPF"></s:GridColumn>
+					<s:GridColumn dataField="nome" headerText="Nome"></s:GridColumn>
+					<s:GridColumn width="80" dataField="telefone" headerText="Telefone"></s:GridColumn>
+				</s:ArrayList>
+			</s:columns>
+		</s:DataGrid>
+		<s:BorderContainer left="14" right="10" top="26" height="94">
+			<s:TextInput id="cmpCpf" x="10" y="30" width="167"/>
+			<s:Label x="10" y="10" fontWeight="bold" text="CPF&#xd;"/>
+			<s:TextInput id="cmpNome" y="30" left="185" right="10"/>
+			<s:Label x="185" y="10" fontWeight="bold" text="Nome"/>
+			<s:Button id="button" y="60" right="10" label="Pesquisar"
+					  click="button_clickHandler(event)"/>
+		</s:BorderContainer>
+		<s:Label x="14" y="10" fontStyle="italic" fontWeight="bold" text="Pesquisar"/>
+		<s:Label x="14" y="138" text="Lista"/>
+	</s:Panel>
+</s:Module>

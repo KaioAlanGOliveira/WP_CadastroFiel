@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+    http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+    version="4.0">
+
+    <display-name>CadastroFiel</display-name>
+
+    <welcome-file-list>
+        <welcome-file>CadastroFielFlx.html</welcome-file>
+    </welcome-file-list>
+
+    <!-- Http Flex Session -->
+    <listener>
+        <listener-class>flex.messaging.HttpFlexSession</listener-class>
+    </listener>
+
+    <!-- MessageBroker Servlet -->
+    <servlet>
+        <servlet-name>MessageBrokerServlet</servlet-name>
+        <servlet-class>flex.messaging.MessageBrokerServlet</servlet-class>
+        <init-param>
+            <param-name>services.configuration.file</param-name>
+            <param-value>/WEB-INF/flex/services-config.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>RDSDispatchServlet</servlet-name>
+        <servlet-class>flex.rds.server.servlet.FrontEndServlet</servlet-class>
+        <init-param>
+            <param-name>useAppserverSecurity</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <load-on-startup>10</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>RDSDispatchServlet</servlet-name>
+        <url-pattern>/CFIDE/main/ide.cfm</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>MessageBrokerServlet</servlet-name>
+        <url-pattern>/messagebroker/*</url-pattern>
+    </servlet-mapping>
+
+  <persistence-context-ref>
+    <persistence-context-ref-name>CadastroFiel/EntityManager</persistence-context-ref-name>
+    <persistence-unit-name>fielPersistenceUnit</persistence-unit-name>
+  </persistence-context-ref>
+
+</web-app>

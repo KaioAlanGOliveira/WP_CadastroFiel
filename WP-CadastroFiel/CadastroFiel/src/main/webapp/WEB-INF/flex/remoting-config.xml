@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service id="remoting-service" 
+    class="flex.messaging.services.RemotingService">
+
+    <adapters>
+        <adapter-definition id="java-object" class="flex.messaging.services.remoting.adapters.JavaAdapter" default="true"/>
+    </adapters>
+
+    <default-channels>
+        <channel ref="my-amf"/>
+    </default-channels>
+    
+     <destination id="fielService">
+        <properties>
+            <source>br.com.kaio.service.FielService</source>
+        </properties>
+    </destination>
+     <destination id="pagamentoService">
+        <properties>
+            <source>br.com.kaio.service.PagamentoService</source>
+        </properties>
+    </destination>
+     <destination id="pesqFielService">
+        <properties>
+            <source>br.com.kaio.service.component.PesqFielService</source>
+        </properties>
+    </destination>
+</service>

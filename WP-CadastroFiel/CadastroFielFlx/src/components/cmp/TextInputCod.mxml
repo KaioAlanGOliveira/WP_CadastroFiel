@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TextInput xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			 xmlns:s="library://ns.adobe.com/flex/spark" 
+			 xmlns:mx="library://ns.adobe.com/flex/mx"
+			 text=""
+			 keyDown="ti1_keyDownHandler(event)"
+			 restrict="0-9"
+			 textAlign="right"
+			 maxChars="14">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.containers.TabNavigator;
+			import mx.core.UIComponent;
+			
+			[Bindable]
+			public var proximoCampo :UIComponent = null;
+			
+			[Bindable]
+			public var proximoCampo2 :UIComponent = null;
+			
+			[Bindable]
+			public var tabNavigator :TabNavigator = null;
+			
+			protected function ti1_keyDownHandler(event:KeyboardEvent):void
+			{
+				if ( event.keyCode == Keyboard.ENTER ) {
+					chamaProximoCampo();
+				}
+			}
+			
+			public function set valor(v :Number) :void 
+			{
+				try { 
+					if (v == 0 || isNaN(v) ) 
+						text = "";
+					else
+						text = v.toString();
+				} catch (ignore :Error) { }
+			}
+			
+			public function get valor() :Number 
+			{
+				try { 
+					return parseFloat(text);
+				} catch (ignore :Error) { }
+				return 0;
+			}
+			
+			private function chamaProximoCampo():void
+			{
+				if ( tabNavigator != null ) {
+					tabNavigator.selectedIndex = tabNavigator.selectedIndex + 1;
+				}
+				if ( proximoCampo != null ){
+					if ( proximoCampo.enabled ) {
+						proximoCampo.setFocus();
+					} else if ( proximoCampo2 != null ){
+						if ( proximoCampo2.enabled ) {
+							proximoCampo2.setFocus();
+						}
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:TextInput>

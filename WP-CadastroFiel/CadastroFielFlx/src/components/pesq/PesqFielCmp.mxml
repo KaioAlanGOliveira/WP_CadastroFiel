@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:services="services.*"
+		 width="400" height="22" xmlns:cmp="components.cmp.*">
+	<s:layout>
+		<s:HorizontalLayout verticalAlign="bottom"/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.Funcoes;
+			
+			import valueObjects.Fiel;
+			
+			[Bindable]
+			public var fiel :Fiel = null;
+			
+			[Bindable]
+			public var tiEnabled :Boolean = true;
+			
+			[Bindable]
+			public var uiPai :UIComponent = null;
+			
+			[Bindable]
+			public var proximoCampo :UIComponent = null;
+			
+			[Bindable]
+			public var proximoCampo2 :UIComponent = null;
+			
+			private var viaSet :Boolean = false;
+			
+			public function set cpf(codCpf :String) :void {
+				
+				if ( cpf != "" ) { 
+					viaSet = true;
+					getEntityResult.token = pesqService.getEntity(codCpf);
+				} else {
+					fiel = null;
+				}
+			}
+			
+			public function get cpf() :String 
+			{	
+				if ( fiel == null ) {
+					return null;
+				}
+				return fiel.cpf;
+			}
+						
+			public function setUiPai(ui:UIComponent) :void
+			{
+				uiPai = ui;
+			}
+			
+			protected function tiCod_keyDownHandler(event:KeyboardEvent):void
+			{
+				if ( tiEnabled && event.keyCode == Keyboard.ENTER ) {
+					if ( tiCod.text == "" ) {
+						chamaProximoCampo();
+					}else{
+						getEntityResult.token = pesqService.getEntity(tiCod.text);
+					}
+				} else {
+					fiel = null;
+					dispatchEvent(new Event("limpado"));
+				}
+			}
+			
+			protected function getEntityResult_resultHandler(event:ResultEvent):void
+			{
+				fiel = event.result as Fiel;
+				if ( fiel == null ) {
+					Alert.show("Código inexistente.");
+					tiCod.text = "";
+				} else{
+					dispatchEvent(new Event("preenchido")); 
+					if ( !viaSet ){
+						chamaProximoCampo();
+						dispatchEvent(new Event("preenchidoUsuario"));
+					}
+				}
+				viaSet = false;
+			}			
+			
+			protected function showLista():void
+			{
+				var ui:PesqFielLst = new PesqFielLst();
+				if ( uiPai == null )
+					PopUpManager.addPopUp(ui, this, true);
+				else
+					PopUpManager.addPopUp(ui, uiPai, true);
+				PopUpManager.centerPopUp(ui);
+				
+				ui.addEventListener(Event.REMOVED_FROM_STAGE, function(event :Event) :void {
+					if (!ui.fechado) {
+						fiel = ui.fiel;
+						dispatchEvent(new Event("change")); 
+						dispatchEvent(new Event("preenchido")); 
+						dispatchEvent(new Event("preenchidoUsuario")); 
+						chamaProximoCampo();
+					}
+				});
+			}
+			
+			override public function setFocus():void{
+				tiCod.setFocus();
+			}			
+			
+			protected function chamaProximoCampo() :void {
+				if ( proximoCampo != null ){
+					if ( proximoCampo.enabled ) {
+						proximoCampo.setFocus();
+					} else {
+						if ( proximoCampo2 != null ){
+							proximoCampo2.setFocus();
+						}
+					}
+				}
+			}
+			
+			public function limpar():void
+			{
+				dispatchEvent(new Event("change")); 
+				fiel = null;
+				tiCod.text = "";
+			}	
+			
+			protected function tiCod_keyUpHandler(event:KeyboardEvent):void
+			{
+				if(tiEnabled && event.keyCode == 106){
+					showLista();
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:CallResponder id="getEntityResult" result="getEntityResult_resultHandler(event)"/>
+		
+		<services:PesqFielService id="pesqService"
+										 fault="Funcoes.showMenssagemErro(event.fault.faultString)"
+										 showBusyCursor="true"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Metadata> 
+		[Event(name="change", type="flash.events.Event")] 
+		[Event(name="limpado", type="flash.events.Event")] 
+		[Event(name="preenchido", type="flash.events.Event")] 
+		[Event(name="preenchidoUsuario", type="flash.events.Event")] 
+	</fx:Metadata> 
+	<cmp:TextInputCod id="tiCod" x="2" y="1.5" width="57" maxChars="11" enabled="{tiEnabled}" restrict="0-9"
+					  keyDown="tiCod_keyDownHandler(event)" keyUp="tiCod_keyUpHandler(event)" text="{fiel.cpf}"/>
+	<s:TextInput id="tiNome" x="67" y="1.5" width="100%" contentBackgroundColor="#EEEEEE"
+				 editable="false" text="{fiel.nome}"/>
+	<s:Button id="btFind" x="358" y="2" width="33" height="22" label="*"
+			  click="showLista()" enabled="{tiEnabled}"/>
+</s:Group>

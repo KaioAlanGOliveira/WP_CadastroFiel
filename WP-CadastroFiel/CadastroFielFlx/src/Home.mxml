@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationPolicy="all">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Panel x="0" y="0" width="100%" height="100%" title="CadFiel">
+		<s:Label left="10" right="10" top="10" bottom="10" fontSize="50" text="Bem vindo!!"
+				 textAlign="center" verticalAlign="middle"/>
+		<s:Label left="7" right="13" top="7" bottom="13" color="#FFFFFF" fontSize="50"
+				 text="Bem vindo!!" textAlign="center" verticalAlign="middle"/>
+	</s:Panel>
+</s:Module>
